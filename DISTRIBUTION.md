@@ -1,6 +1,6 @@
 # Distribution Posts — Copy-Paste Ready
 
-Replace [YOUR_URL] with your deployed Railway URL before posting.
+Replace [https://gpu-inference-profiler-production.up.railway.app] with your deployed Railway URL before posting.
 Take a screenshot of Llama 3 8B on H100 with default settings first — that's your image.
 
 ---
@@ -26,7 +26,7 @@ We ran it on Llama 3 8B on H100 SXM5 with stock config (batch=1, no Flash Attent
 - Bottleneck 2: Batch size 1 — 3-8x throughput improvement possible
 - Estimated $5,900/month in avoidable GPU spend (4x H100)
 
-Free, no signup: [YOUR_URL]
+Free, no signup: [https://gpu-inference-profiler-production.up.railway.app]
 
 ---
 
@@ -39,7 +39,7 @@ Give it a model + GPU, get a roofline analysis showing your efficiency gap + top
 Llama 3 8B / H100 SXM5 unoptimized: 90 tok/s measured vs 234 tok/s peak.
 Detects missing FA2, batch_size=1, precision opportunities, KV cache issues.
 
-[YOUR_URL] — free, no signup. Feedback welcome especially from people who have
+[https://gpu-inference-profiler-production.up.railway.app] — free, no signup. Feedback welcome especially from people who have
 profiled these models for real.
 
 ---
@@ -52,7 +52,7 @@ score vs theoretical peak, top bottlenecks, estimated cost gap.
 Supports Llama 3/3.1/3.2, Mistral, Mixtral, Qwen 2.5, Gemma 2, Phi-3.5, DeepSeek R1
 across H100/A100/L40S/A10G/RTX 4090.
 
-[YOUR_URL] — free, no login
+[https://gpu-inference-profiler-production.up.railway.app] — free, no login
 
 ---
 
@@ -79,7 +79,7 @@ Llama 8B in FP16 = 16GB weights. INT8 = 8GB. Same quality. 1.5x more throughput.
 
 Tweet 5:
 We built a free tool to run this on your own model and GPU in 10 seconds.
-No signup: [YOUR_URL]
+No signup: [https://gpu-inference-profiler-production.up.railway.app]
 cc @marksaroufim @pytorch
 
 ---
@@ -95,7 +95,7 @@ top bottlenecks, and estimated monthly savings.
 Llama 3 8B / H100 SXM5 untuned: 90 tok/s vs 234 tok/s peak.
 Top issue: Flash Attention 2 not enabled. Free to fix. 2x speedup available.
 
-Free at [YOUR_URL] — no login required.
+Free at [https://gpu-inference-profiler-production.up.railway.app] — no login required.
 
 ---
 
