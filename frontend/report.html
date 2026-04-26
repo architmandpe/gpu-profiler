@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inference Efficiency Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0b;--bg2:#111114;--bg3:#18181d;--border:#242429;--text:#e8e8ec;--muted:#6b6b7a;--accent:#4ade80;--warn:#fbbf24;--danger:#f87171;--info:#60a5fa;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh}
+.page{max-width:800px;margin:0 auto;padding:0 20px 60px}
+header{border-bottom:1px solid var(--border);padding:16px 0;display:flex;align-items:center;gap:12px;margin-bottom:36px}
+.logo{width:24px;height:24px;background:var(--accent);border-radius:5px;flex-shrink:0}
+.logo-text{font-family:var(--mono);font-size:12px;color:var(--text)}.logo-text span{color:var(--accent)}
+.try-btn{margin-left:auto;background:transparent;border:1px solid #2e2e36;color:var(--muted);border-radius:6px;font-family:var(--mono);font-size:11px;padding:6px 12px;cursor:pointer;text-decoration:none;transition:all .15s}
+.try-btn:hover{border-color:var(--accent);color:var(--accent)}
+.report-meta{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:16px;display:flex;gap:16px;flex-wrap:wrap}
+.headline{font-size:22px;font-weight:600;line-height:1.3;margin-bottom:8px;letter-spacing:-.3px}
+.subheadline{color:var(--muted);font-size:14px;margin-bottom:24px}
+.score-block{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-bottom:16px}
+.score-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}.score-row:last-child{margin-bottom:0}
+.score-lbl{font-size:12px;color:var(--muted);font-family:var(--mono);width:140px;flex-shrink:0}
+.score-bar{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.score-fill{height:100%;border-radius:3px}.score-val{font-family:var(--mono);font-size:13px;font-weight:500;width:44px;text-align:right}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.mc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px}
+.mc-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.mc-val{font-family:var(--mono);font-size:20px;font-weight:500;line-height:1;margin-bottom:3px}
+.mc-sub{font-size:11px;color:var(--muted)}
+.sec-title{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:22px 0 10px;display:flex;align-items:center;gap:10px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.bn{border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:8px;background:var(--bg2)}
+.bn-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+.bn-rank{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bn-title{font-size:13px;font-weight:500;flex:1}
+.bn-pill{font-family:var(--mono);font-size:11px;color:var(--warn);background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);padding:3px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.bn-desc{font-size:12px;color:var(--muted);line-height:1.6;margin:4px 0 8px 32px}
+.bn-fix{font-family:var(--mono);font-size:11px;color:var(--accent);background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.12);padding:7px 10px;border-radius:5px;line-height:1.5;margin-left:32px}
+.bn-fix::before{content:'\2192 ';opacity:.6}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:5px}
+.dot-critical{background:var(--danger)}.dot-high{background:var(--warn)}.dot-medium{background:var(--info)}.dot-low{background:var(--muted)}
+.cost-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;background:rgba(74,222,128,.04);border:1px solid rgba(74,222,128,.18);border-radius:8px;padding:18px 22px;margin-top:4px}
+.ci-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.ci-val{font-family:var(--mono);font-size:20px;font-weight:500}.ci-val.green{color:var(--accent)}
+.ci-note{font-size:11px;color:var(--muted);margin-top:2px}
+.cta{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-top:24px}
+.cta-title{font-size:15px;font-weight:600;margin-bottom:6px}.cta-sub{font-size:13px;color:var(--muted);margin-bottom:14px}
+.cta-row{display:flex;gap:8px;flex-wrap:wrap}
+.cta-input{flex:1;min-width:180px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:13px;padding:9px 12px;outline:none;transition:border-color .15s}
+.cta-input:focus{border-color:var(--accent)}.cta-input::placeholder{color:var(--muted)}
+.cta-submit{background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:6px;font-family:var(--mono);font-size:12px;font-weight:500;padding:9px 18px;cursor:pointer;transition:background .15s}
+.cta-submit:hover{background:rgba(74,222,128,.08)}
+.cta-success{display:none;margin-top:10px;font-size:13px;color:var(--accent);font-family:var(--mono)}
+.cta-err{display:none;margin-top:6px;font-size:12px;color:var(--danger)}
+.share-bar{display:flex;gap:8px;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.share-lbl{font-size:12px;color:var(--muted);margin-right:4px;white-space:nowrap}
+.share-url{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--muted);padding:7px 10px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.copy-btn{background:transparent;border:1px solid #2e2e36;color:var(--muted);border-radius:6px;font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;transition:all .15s;flex-shrink:0}
+.copy-btn:hover,.copy-btn.copied{border-color:var(--accent);color:var(--accent)}
+.analyze-own{text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)}
+.analyze-own a{color:var(--accent);text-decoration:none}.analyze-own a:hover{text-decoration:underline}
+footer{border-top:1px solid var(--border);margin-top:48px;padding-top:16px;font-size:12px;color:var(--muted);display:flex;gap:16px}
+@media(max-width:600px){.metrics{grid-template-columns:1fr 1fr}.cost-grid{grid-template-columns:1fr}.bn-desc,.bn-fix{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="logo"></div>
+    <span class="logo-text">inference<span>.profile</span></span>
+    <a href="/" class="try-btn">Analyze your stack</a>
+  </header>
+  <div class="report-meta" id="report-meta"></div>
+  <div class="headline" id="headline"></div>
+  <div class="subheadline" id="subheadline"></div>
+  <div class="score-block">
+    <div class="score-row"><span class="score-lbl">Efficiency score</span><div class="score-bar"><div class="score-fill" id="sb-eff" style="width:0"></div></div><span class="score-val" id="sv-eff">-</span></div>
+    <div class="score-row"><span class="score-lbl">BW utilization</span><div class="score-bar"><div class="score-fill" id="sb-bw" style="width:0;background:var(--info)"></div></div><span class="score-val" id="sv-bw">-</span></div>
+    <div class="score-row"><span class="score-lbl">VRAM used</span><div class="score-bar"><div class="score-fill" id="sb-mem" style="width:0;background:var(--warn)"></div></div><span class="score-val" id="sv-mem">-</span></div>
+  </div>
+  <div class="metrics">
+    <div class="mc"><div class="mc-lbl">Measured throughput</div><div class="mc-val" id="m-tps">-</div><div class="mc-sub">tokens / sec</div></div>
+    <div class="mc"><div class="mc-lbl">Theoretical peak</div><div class="mc-val" id="m-peak">-</div><div class="mc-sub">tokens / sec</div></div>
+    <div class="mc"><div class="mc-lbl">Bottleneck type</div><div class="mc-val" id="m-bound" style="font-size:14px;padding-top:4px">-</div><div class="mc-sub" id="m-bound-sub"></div></div>
+    <div class="mc"><div class="mc-lbl">Model weights</div><div class="mc-val" id="m-weights">-</div><div class="mc-sub">GB on GPU</div></div>
+  </div>
+  <div class="sec-title">Top bottlenecks</div>
+  <div id="bn-list"></div>
+  <div class="sec-title">Monthly cost impact</div>
+  <div class="cost-grid">
+    <div><div class="ci-lbl">Current GPU cost</div><div class="ci-val" id="c-cur">-</div><div class="ci-note" id="c-basis">-</div></div>
+    <div><div class="ci-lbl">Optimized cost</div><div class="ci-val" id="c-opt">-</div><div class="ci-note">after applying fixes</div></div>
+    <div><div class="ci-lbl">Monthly savings</div><div class="ci-val green" id="c-save">-</div><div class="ci-note" id="c-pct">-</div></div>
+  </div>
+  <div class="cta">
+    <div class="cta-title">Get a free optimization plan for your stack</div>
+    <div class="cta-sub">We will review your setup and send a specific fix list within 24 hours.</div>
+    <div class="cta-row">
+      <input class="cta-input" type="email" id="cta-email" placeholder="you@company.com">
+      <input class="cta-input" type="text" id="cta-company" placeholder="Company (optional)" style="max-width:180px">
+      <button class="cta-submit" onclick="submitLead()">Send me the plan</button>
+    </div>
+    <div class="cta-success" id="cta-ok">&#10003; On it. You will hear from us within 24 hours.</div>
+    <div class="cta-err" id="cta-err"></div>
+    <div class="share-bar">
+      <span class="share-lbl">Share this report:</span>
+      <div class="share-url" id="share-url"></div>
+      <button class="copy-btn" id="copy-btn" onclick="copyUrl()">Copy link</button>
+    </div>
+  </div>
+  <div class="analyze-own"><a href="/">Analyze your own inference stack</a></div>
+  <footer><span>inference.profile</span><span>&#183;</span><span>Based on roofline model analysis and MLPerf benchmark baselines</span></footer>
+</div>
+<script>
+const REPORT = __REPORT_JSON__;
+const RUN_ID = REPORT.run_id || '';
+const API = window.location.origin;
+function fmt(n){return Math.round(n).toLocaleString();}
+function setBar(id,pct,color){const el=document.getElementById(id);el.style.width=Math.min(pct,100)+'%';el.style.background=color;}
+function render(){
+  const d=REPORT;
+  document.title=d.model_display+' on '+d.gpu_display+' - Inference Report';
+  document.getElementById('report-meta').innerHTML='<span>'+d.model_display+'</span><span>'+d.gpu_display+'</span><span>'+new Date(d.profiled_at*1000).toLocaleDateString()+'</span>';
+  document.getElementById('headline').textContent=d.headline;
+  document.getElementById('subheadline').textContent=d.subheadline;
+  const ec=d.efficiency_score>=70?'var(--accent)':d.efficiency_score>=45?'var(--warn)':'var(--danger)';
+  setTimeout(()=>{setBar('sb-eff',d.efficiency_score,ec);setBar('sb-bw',d.memory.bandwidth_utilization_pct,'var(--info)');setBar('sb-mem',d.memory.utilization_pct,'var(--warn)');},80);
+  document.getElementById('sv-eff').textContent=d.efficiency_score.toFixed(0)+'%';
+  document.getElementById('sv-bw').textContent=d.memory.bandwidth_utilization_pct.toFixed(0)+'%';
+  document.getElementById('sv-mem').textContent=d.memory.utilization_pct.toFixed(0)+'%';
+  document.getElementById('m-tps').textContent=fmt(d.throughput.measured_tokens_per_sec);
+  document.getElementById('m-peak').textContent=fmt(d.throughput.theoretical_peak_tokens_per_sec);
+  document.getElementById('m-bound').textContent=d.memory.bound==='memory-bandwidth'?'Mem BW':d.memory.bound==='compute'?'Compute':'Balanced';
+  document.getElementById('m-bound-sub').textContent=d.memory.bound+' bound';
+  document.getElementById('m-weights').textContent=d.memory.model_weights_gb.toFixed(1);
+  const bl=document.getElementById('bn-list');
+  d.bottlenecks.forEach(b=>{
+    const div=document.createElement('div');div.className='bn';
+    div.innerHTML='<div class="bn-head"><div class="bn-rank">'+b.rank+'</div><div class="bn-title"><span class="dot dot-'+b.severity+'"></span>'+b.title+'</div><div class="bn-pill">'+b.estimated_speedup+'</div></div><div class="bn-desc">'+b.description+'</div><div class="bn-fix">'+b.fix+'</div>';
+    bl.appendChild(div);
+  });
+  document.getElementById('c-cur').textContent='$'+fmt(d.cost.monthly_gpu_cost_usd);
+  document.getElementById('c-opt').textContent='$'+fmt(d.cost.optimized_monthly_cost_usd);
+  document.getElementById('c-save').textContent='$'+fmt(d.cost.monthly_savings_usd)+'/mo';
+  document.getElementById('c-pct').textContent=d.cost.savings_pct.toFixed(0)+'% reduction';
+  document.getElementById('c-basis').textContent=d.cost.assumption_basis;
+  document.getElementById('share-url').textContent=window.location.href;
+}
+async function submitLead(){
+  const email=document.getElementById('cta-email').value.trim();
+  const company=document.getElementById('cta-company').value.trim();
+  const errEl=document.getElementById('cta-err');
+  errEl.style.display='none';
+  if(!email||!email.includes('@')){errEl.textContent='Please enter a valid email.';errEl.style.display='block';return;}
+  try{
+    const res=await fetch(API+'/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,company,run_id:RUN_ID})});
+    if(res.ok){document.getElementById('cta-ok').style.display='block';document.getElementById('cta-email').style.display='none';document.getElementById('cta-company').style.display='none';document.querySelector('.cta-submit').style.display='none';}
+    else{errEl.textContent='Something went wrong. Please try again.';errEl.style.display='block';}
+  }catch(e){errEl.textContent='Could not connect.';errEl.style.display='block';}
+}
+function copyUrl(){
+  navigator.clipboard.writeText(window.location.href).then(()=>{
+    const btn=document.getElementById('copy-btn');btn.textContent='Copied!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='Copy link';btn.classList.remove('copied');},2000);
+  });
+}
+render();
+</script>
+</body>
+</html>

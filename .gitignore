@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.db
+*.sqlite
+/data/
+.env
+*.secret
+.DS_Store
+backend/leads.db
+backend/__pycache__/
